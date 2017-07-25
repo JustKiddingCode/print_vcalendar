@@ -1,0 +1,55 @@
+#!/bin/bash
+
+FILE=$1
+
+ACTIVE_OUTPUT=false
+
+while read -r line
+do
+
+if [ "$line" = "BEGIN:VEVENT" ]
+then
+	ACTIVE_OUTPUT=true
+fi 
+
+
+if $ACTIVE_OUTPUT 
+then
+ #split by colon
+ key=$(echo "$line" | awk -F ':' '{print $1}')
+ value=$(echo "$line" | awk -F ':' '{print $2}')
+
+case "$key" in
+		"DESCRIPTION") echo $value
+		
+		;;
+		
+		DTSTART*) 
+				YEAR=${value:0:4}
+				MONTH=${value:4:2}
+				DAY=${value:6:2}
+				HH=${value:9:2}
+				MM=${value:11:2}
+				echo "Beginn: $DAY.$MONTH.$YEAR um $HH:$MM Uhr"
+		;;
+		DTEND*)
+				YEAR=${value:0:4}
+				MONTH=${value:4:2}
+				DAY=${value:6:2}
+				HH=${value:9:2}
+				MM=${value:11:2}
+				echo "End: $DAY.$MONTH.$YEAR um $HH:$MM Uhr"
+		;;
+		"SUMMARY") echo $value;;
+		*) ;;
+esac
+
+fi 
+
+if [ "$line" = "END:VEVENT" ]
+then 
+	ACTIVE_OUTPUT=false 
+fi
+
+
+done < "$FILE"
